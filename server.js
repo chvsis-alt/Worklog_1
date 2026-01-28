@@ -11,7 +11,14 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
+
+// Serve static files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route - serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Database setup
 const db = new sqlite3.Database('./tasklogger.db', (err) => {
@@ -173,8 +180,31 @@ app.get('/api/stats', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`API available at http://localhost:${PORT}/api/tasks`);
+    console.log(`
+╔════════════════════════════════════════════╗
+║   Task Hour Logger Server Started!        ║
+╚════════════════════════════════════════════╝
+
+🚀 Server running on: http://localhost:${PORT}
+📊 API endpoint: http://localhost:${PORT}/api/tasks
+📁 Serving files from: ${path.join(__dirname, 'public')}
+
+Press Ctrl+C to stop the server
+    `);
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ 
+        error: 'Route not found',
+        availableRoutes: {
+            'GET /': 'Main application',
+            'GET /api/tasks': 'Get all tasks',
+            'POST /api/tasks': 'Create task',
+            'PUT /api/tasks/:id': 'Update task',
+            'DELETE /api/tasks/:id': 'Delete task'
+        }
+    });
 });
 
 // Graceful shutdown
