@@ -11,33 +11,53 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-
-// Serve static files from 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Root route - serve index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.use(express.static('public'));
 
 // Database setup
-const db = new sqlite3.Database('./tasklogger.db', (err) => {
+let db = new sqlite3.Database('./tasklogger.db', (err) => {
     if (err) {
         console.error('Error opening database:', err);
     } else {
-        console.log('Connected to SQLite database');
+        console.log('✅ Connected to SQLite database');
         initializeDatabase();
     }
 });
 
 // Initialize database with schema
 function initializeDatabase() {
-    const schema = fs.readFileSync('./schema.sql', 'utf8');
+    const schema = `
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task TEXT NOT NULL,
+            client TEXT NOT NULL,
+            team TEXT NOT NULL CHECK(team IN ('Build', 'Imp')),
+            user TEXT NOT NULL CHECK(user IN ('Venkatakamesh', 'Chandrashekar', 'Meenu')),
+            hours INTEGER NOT NULL CHECK(hours >= 0),
+            minutes INTEGER NOT NULL CHECK(minutes >= 0 AND minutes < 60),
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('yet to start', 'inprogress', 'completed')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_tasks_user ON tasks(user);
+        CREATE INDEX IF NOT EXISTS idx_tasks_team ON tasks(team);
+        CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+        CREATE INDEX IF NOT EXISTS idx_tasks_dates ON tasks(start_date, end_date);
+
+        CREATE TRIGGER IF NOT EXISTS update_tasks_timestamp 
+        AFTER UPDATE ON tasks
+        BEGIN
+            UPDATE tasks SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+    `;
+    
     db.exec(schema, (err) => {
         if (err) {
             console.error('Error initializing database:', err);
         } else {
-            console.log('Database initialized successfully');
+            console.log('✅ Database initialized successfully');
         }
     });
 }
@@ -182,29 +202,18 @@ app.get('/api/stats', (req, res) => {
 app.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════════╗
-║   Task Hour Logger Server Started!        ║
+║   🚀 Task Hour Logger Server Started!     ║
 ╚════════════════════════════════════════════╝
 
-🚀 Server running on: http://localhost:${PORT}
-📊 API endpoint: http://localhost:${PORT}/api/tasks
-📁 Serving files from: ${path.join(__dirname, 'public')}
+📍 Local:            http://localhost:${PORT}
+📊 API Endpoint:     http://localhost:${PORT}/api/tasks
+📁 Static Files:     ${path.join(__dirname, 'public')}
+💾 Database:         ${path.join(__dirname, 'tasklogger.db')}
+
+✨ Server is ready! Open your browser to http://localhost:${PORT}
 
 Press Ctrl+C to stop the server
     `);
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ 
-        error: 'Route not found',
-        availableRoutes: {
-            'GET /': 'Main application',
-            'GET /api/tasks': 'Get all tasks',
-            'POST /api/tasks': 'Create task',
-            'PUT /api/tasks/:id': 'Update task',
-            'DELETE /api/tasks/:id': 'Delete task'
-        }
-    });
 });
 
 // Graceful shutdown
@@ -213,7 +222,7 @@ process.on('SIGINT', () => {
         if (err) {
             console.error('Error closing database:', err);
         } else {
-            console.log('Database connection closed');
+            console.log('\n✅ Database connection closed');
         }
         process.exit(0);
     });
