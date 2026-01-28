@@ -198,6 +198,46 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
+// Export to Excel endpoint
+app.get('/api/export', (req, res) => {
+    const sql = 'SELECT * FROM tasks ORDER BY created_at DESC';
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        
+        // Create CSV content
+        const headers = ['ID', 'Task', 'Client', 'Team', 'User', 'Hours', 'Minutes', 'Start Date', 'End Date', 'Status', 'Created At', 'Updated At'];
+        const csvRows = [headers.join(',')];
+        
+        rows.forEach(row => {
+            const values = [
+                row.id,
+                `"${row.task.replace(/"/g, '""')}"`,
+                `"${row.client.replace(/"/g, '""')}"`,
+                row.team,
+                row.user,
+                row.hours,
+                row.minutes,
+                row.start_date,
+                row.end_date,
+                row.status,
+                row.created_at,
+                row.updated_at
+            ];
+            csvRows.push(values.join(','));
+        });
+        
+        const csvContent = csvRows.join('\n');
+        
+        // Set headers for file download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=task-logs-${new Date().toISOString().split('T')[0]}.csv`);
+        res.send(csvContent);
+    });
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`
