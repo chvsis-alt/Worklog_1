@@ -7,9 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #d3dbf3;
-            --bg-secondary: #3d85c6;
-            --bg-tertiary: #6fa8dc;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #141824;
+            --bg-tertiary: #1a1f2e;
             --accent-primary: #00d9ff;
             --accent-secondary: #7c3aed;
             --accent-gradient: linear-gradient(135deg, #00d9ff 0%, #7c3aed 100%);
@@ -205,26 +205,15 @@
             background: var(--bg-tertiary);
             padding: 1rem;
             border-bottom: 1px solid var(--border-color);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) auto;
-            gap: 0.75rem;
-            align-items: end;
-        }
-
-        .filter-group {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .filter-group label {
-            font-size: 0.7rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .filter-group select,
-        .filter-group input {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.85rem;
+        .filter-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
         .filter-actions {
@@ -236,6 +225,8 @@
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
         }
 
         .btn-secondary:hover {
@@ -248,6 +239,8 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
         }
 
         .btn-export:hover {
@@ -264,6 +257,63 @@
 
         .results-count strong {
             color: var(--accent-primary);
+        }
+
+        /* Column filter styles */
+        .column-filter {
+            margin-top: 0.5rem;
+        }
+
+        .column-filter input,
+        .column-filter select {
+            width: 100%;
+            padding: 0.4rem;
+            font-size: 0.8rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .column-filter input::placeholder {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .column-filter input:focus,
+        .column-filter select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
+        }
+
+        thead th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .filter-active {
+            color: var(--accent-primary) !important;
+        }
+
+        .clear-filter-icon {
+            cursor: pointer;
+            display: inline-block;
+            margin-left: 0.25rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .clear-filter-icon:hover {
+            opacity: 1;
+            color: var(--error);
         }
 
         table {
@@ -543,71 +593,94 @@
 
         <div class="table-section">
             <div class="filter-section">
-                <div class="filter-group">
-                    <label>Filter by User</label>
-                    <select id="filterUser">
-                        <option value="">All Users</option>
-                        <option value="Venkatakamesh">Venkatakamesh</option>
-                        <option value="Chandrashekar">Chandrashekar</option>
-                        <option value="Meenu">Meenu</option>
-                    </select>
+                <div class="filter-info">
+                    Use column filters below to search and filter tasks
                 </div>
-
-                <div class="filter-group">
-                    <label>Filter by Team</label>
-                    <select id="filterTeam">
-                        <option value="">All Teams</option>
-                        <option value="Build">Build</option>
-                        <option value="Imp">Imp</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>Filter by Status</label>
-                    <select id="filterStatus">
-                        <option value="">All Status</option>
-                        <option value="yet to start">Yet to Start</option>
-                        <option value="inprogress">In Progress</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>From Date</label>
-                    <input type="date" id="filterFromDate">
-                </div>
-
-                <div class="filter-group">
-                    <label>To Date</label>
-                    <input type="date" id="filterToDate">
-                </div>
-
                 <div class="filter-actions">
-                    <button type="button" class="btn-secondary" onclick="clearFilters()">Clear</button>
+                    <button type="button" class="btn-secondary" onclick="clearAllFilters()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: inline; vertical-align: middle;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Clear All
+                    </button>
                     <button type="button" class="btn-export" onclick="exportToExcel()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        Export
+                        Export to Excel
                     </button>
                 </div>
             </div>
 
             <div class="results-count" id="resultsCount">
-                Showing <strong id="resultNumber">0</strong> tasks
+                Showing <strong id="resultNumber">0</strong> of <strong id="totalNumber">0</strong> tasks
             </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th>Task</th>
-                        <th>Client</th>
-                        <th>Team</th>
-                        <th>User</th>
-                        <th>Hours Spent</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Status</th>
+                        <th>
+                            <div>Task</div>
+                            <div class="column-filter">
+                                <input type="text" id="filterTask" placeholder="Search task..." oninput="applyFilters()">
+                            </div>
+                        </th>
+                        <th>
+                            <div>Client</div>
+                            <div class="column-filter">
+                                <input type="text" id="filterClient" placeholder="Search client..." oninput="applyFilters()">
+                            </div>
+                        </th>
+                        <th>
+                            <div>Team</div>
+                            <div class="column-filter">
+                                <select id="filterTeam" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="Build">Build</option>
+                                    <option value="Imp">Imp</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            <div>User</div>
+                            <div class="column-filter">
+                                <select id="filterUser" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="Venkatakamesh">Venkatakamesh</option>
+                                    <option value="Chandrashekar">Chandrashekar</option>
+                                    <option value="Meenu">Meenu</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            <div>Hours</div>
+                            <div class="column-filter">
+                                <input type="text" id="filterHours" placeholder="e.g. 8:30" oninput="applyFilters()">
+                            </div>
+                        </th>
+                        <th>
+                            <div>Start Date</div>
+                            <div class="column-filter">
+                                <input type="date" id="filterStartDate" onchange="applyFilters()">
+                            </div>
+                        </th>
+                        <th>
+                            <div>End Date</div>
+                            <div class="column-filter">
+                                <input type="date" id="filterEndDate" onchange="applyFilters()">
+                            </div>
+                        </th>
+                        <th>
+                            <div>Status</div>
+                            <div class="column-filter">
+                                <select id="filterStatus" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="yet to start">Yet to Start</option>
+                                    <option value="inprogress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                        </th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -634,19 +707,15 @@
         const submitBtn = document.getElementById('submitBtn');
         const messageContainer = document.getElementById('message-container');
         
-        // Filter elements
+        // Filter elements - Column-based filters
+        const filterTask = document.getElementById('filterTask');
+        const filterClient = document.getElementById('filterClient');
         const filterUser = document.getElementById('filterUser');
         const filterTeam = document.getElementById('filterTeam');
         const filterStatus = document.getElementById('filterStatus');
-        const filterFromDate = document.getElementById('filterFromDate');
-        const filterToDate = document.getElementById('filterToDate');
-
-        // Add event listeners for filters
-        filterUser.addEventListener('change', applyFilters);
-        filterTeam.addEventListener('change', applyFilters);
-        filterStatus.addEventListener('change', applyFilters);
-        filterFromDate.addEventListener('change', applyFilters);
-        filterToDate.addEventListener('change', applyFilters);
+        const filterHours = document.getElementById('filterHours');
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
 
         // Show message
         function showMessage(message, type = 'success') {
@@ -677,16 +746,32 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 allTasks = data.tasks;
-                applyFilters();
+                applyFilters(); // Apply filters to show current filtered view
             } catch (error) {
                 console.error('Error loading tasks:', error);
                 showMessage('Error loading tasks from database', 'error');
             }
         }
 
-        // Apply filters
+        // Apply filters - Column-based filtering
         function applyFilters() {
             let filteredTasks = [...allTasks];
+
+            // Filter by task name (search)
+            if (filterTask.value.trim()) {
+                const searchTerm = filterTask.value.toLowerCase();
+                filteredTasks = filteredTasks.filter(task => 
+                    task.task.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Filter by client name (search)
+            if (filterClient.value.trim()) {
+                const searchTerm = filterClient.value.toLowerCase();
+                filteredTasks = filteredTasks.filter(task => 
+                    task.client.toLowerCase().includes(searchTerm)
+                );
+            }
 
             // Filter by user
             if (filterUser.value) {
@@ -703,32 +788,51 @@
                 filteredTasks = filteredTasks.filter(task => task.status === filterStatus.value);
             }
 
-            // Filter by date range
-            if (filterFromDate.value) {
-                filteredTasks = filteredTasks.filter(task => task.start_date >= filterFromDate.value);
+            // Filter by hours (search - matches hours:minutes format)
+            if (filterHours.value.trim()) {
+                const searchTerm = filterHours.value.toLowerCase();
+                filteredTasks = filteredTasks.filter(task => 
+                    formatTime(task.hours, task.minutes).includes(searchTerm)
+                );
             }
 
-            if (filterToDate.value) {
-                filteredTasks = filteredTasks.filter(task => task.end_date <= filterToDate.value);
+            // Filter by start date
+            if (filterStartDate.value) {
+                filteredTasks = filteredTasks.filter(task => task.start_date === filterStartDate.value);
+            }
+
+            // Filter by end date
+            if (filterEndDate.value) {
+                filteredTasks = filteredTasks.filter(task => task.end_date === filterEndDate.value);
             }
 
             renderTasks(filteredTasks);
-            updateResultsCount(filteredTasks.length);
+            updateResultsCount(filteredTasks.length, allTasks.length);
         }
 
-        // Clear filters
-        function clearFilters() {
+        // Make applyFilters global
+        window.applyFilters = applyFilters;
+
+        // Clear all filters
+        function clearAllFilters() {
+            filterTask.value = '';
+            filterClient.value = '';
             filterUser.value = '';
             filterTeam.value = '';
             filterStatus.value = '';
-            filterFromDate.value = '';
-            filterToDate.value = '';
+            filterHours.value = '';
+            filterStartDate.value = '';
+            filterEndDate.value = '';
             applyFilters();
         }
 
+        // Make clearAllFilters global
+        window.clearAllFilters = clearAllFilters;
+
         // Update results count
-        function updateResultsCount(count) {
-            document.getElementById('resultNumber').textContent = count;
+        function updateResultsCount(filtered, total) {
+            document.getElementById('resultNumber').textContent = filtered;
+            document.getElementById('totalNumber').textContent = total;
         }
 
         // Export to Excel (CSV format)
@@ -739,7 +843,19 @@
                 // Get current filtered tasks
                 let tasksToExport = [...allTasks];
                 
-                // Apply same filters
+                // Apply same filters as display
+                if (filterTask.value.trim()) {
+                    const searchTerm = filterTask.value.toLowerCase();
+                    tasksToExport = tasksToExport.filter(task => 
+                        task.task.toLowerCase().includes(searchTerm)
+                    );
+                }
+                if (filterClient.value.trim()) {
+                    const searchTerm = filterClient.value.toLowerCase();
+                    tasksToExport = tasksToExport.filter(task => 
+                        task.client.toLowerCase().includes(searchTerm)
+                    );
+                }
                 if (filterUser.value) {
                     tasksToExport = tasksToExport.filter(task => task.user === filterUser.value);
                 }
@@ -749,11 +865,17 @@
                 if (filterStatus.value) {
                     tasksToExport = tasksToExport.filter(task => task.status === filterStatus.value);
                 }
-                if (filterFromDate.value) {
-                    tasksToExport = tasksToExport.filter(task => task.start_date >= filterFromDate.value);
+                if (filterHours.value.trim()) {
+                    const searchTerm = filterHours.value.toLowerCase();
+                    tasksToExport = tasksToExport.filter(task => 
+                        formatTime(task.hours, task.minutes).includes(searchTerm)
+                    );
                 }
-                if (filterToDate.value) {
-                    tasksToExport = tasksToExport.filter(task => task.end_date <= filterToDate.value);
+                if (filterStartDate.value) {
+                    tasksToExport = tasksToExport.filter(task => task.start_date === filterStartDate.value);
+                }
+                if (filterEndDate.value) {
+                    tasksToExport = tasksToExport.filter(task => task.end_date === filterEndDate.value);
                 }
 
                 // Create CSV content
@@ -805,7 +927,6 @@
 
         // Make export function global
         window.exportToExcel = exportToExcel;
-        window.clearFilters = clearFilters;
 
         // Add or update task
         form.addEventListener('submit', async (e) => {
@@ -849,7 +970,9 @@
                 editingId = null;
                 form.reset();
                 submitBtn.textContent = 'Add Task Entry';
-                loadTasks();
+                
+                // Reload tasks but keep filters active
+                await loadTasks();
             } catch (error) {
                 console.error('Error saving task:', error);
                 showMessage('Error saving task to database', 'error');
@@ -946,7 +1069,9 @@
                 }
 
                 showMessage('Task deleted successfully!');
-                loadTasks();
+                
+                // Reload tasks but keep filters active
+                await loadTasks();
             } catch (error) {
                 console.error('Error deleting task:', error);
                 showMessage('Error deleting task from database', 'error');
