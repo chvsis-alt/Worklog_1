@@ -201,6 +201,71 @@
             overflow: hidden;
         }
 
+        .filter-section {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) auto;
+            gap: 0.75rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 0.7rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .btn-export {
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .results-count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+        }
+
+        .results-count strong {
+            color: var(--accent-primary);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -477,6 +542,61 @@
         </div>
 
         <div class="table-section">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>Filter by User</label>
+                    <select id="filterUser">
+                        <option value="">All Users</option>
+                        <option value="Venkatakamesh">Venkatakamesh</option>
+                        <option value="Chandrashekar">Chandrashekar</option>
+                        <option value="Meenu">Meenu</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Filter by Team</label>
+                    <select id="filterTeam">
+                        <option value="">All Teams</option>
+                        <option value="Build">Build</option>
+                        <option value="Imp">Imp</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Filter by Status</label>
+                    <select id="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="yet to start">Yet to Start</option>
+                        <option value="inprogress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" id="filterFromDate">
+                </div>
+
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" id="filterToDate">
+                </div>
+
+                <div class="filter-actions">
+                    <button type="button" class="btn-secondary" onclick="clearFilters()">Clear</button>
+                    <button type="button" class="btn-export" onclick="exportToExcel()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-count" id="resultsCount">
+                Showing <strong id="resultNumber">0</strong> tasks
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -507,11 +627,26 @@
     <script>
         const API_URL = '/api/tasks';
         let editingId = null;
+        let allTasks = []; // Store all tasks for filtering
 
         const form = document.getElementById('taskForm');
         const tableBody = document.getElementById('taskTableBody');
         const submitBtn = document.getElementById('submitBtn');
         const messageContainer = document.getElementById('message-container');
+        
+        // Filter elements
+        const filterUser = document.getElementById('filterUser');
+        const filterTeam = document.getElementById('filterTeam');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterFromDate = document.getElementById('filterFromDate');
+        const filterToDate = document.getElementById('filterToDate');
+
+        // Add event listeners for filters
+        filterUser.addEventListener('change', applyFilters);
+        filterTeam.addEventListener('change', applyFilters);
+        filterStatus.addEventListener('change', applyFilters);
+        filterFromDate.addEventListener('change', applyFilters);
+        filterToDate.addEventListener('change', applyFilters);
 
         // Show message
         function showMessage(message, type = 'success') {
@@ -541,12 +676,136 @@
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                renderTasks(data.tasks);
+                allTasks = data.tasks;
+                applyFilters();
             } catch (error) {
                 console.error('Error loading tasks:', error);
                 showMessage('Error loading tasks from database', 'error');
             }
         }
+
+        // Apply filters
+        function applyFilters() {
+            let filteredTasks = [...allTasks];
+
+            // Filter by user
+            if (filterUser.value) {
+                filteredTasks = filteredTasks.filter(task => task.user === filterUser.value);
+            }
+
+            // Filter by team
+            if (filterTeam.value) {
+                filteredTasks = filteredTasks.filter(task => task.team === filterTeam.value);
+            }
+
+            // Filter by status
+            if (filterStatus.value) {
+                filteredTasks = filteredTasks.filter(task => task.status === filterStatus.value);
+            }
+
+            // Filter by date range
+            if (filterFromDate.value) {
+                filteredTasks = filteredTasks.filter(task => task.start_date >= filterFromDate.value);
+            }
+
+            if (filterToDate.value) {
+                filteredTasks = filteredTasks.filter(task => task.end_date <= filterToDate.value);
+            }
+
+            renderTasks(filteredTasks);
+            updateResultsCount(filteredTasks.length);
+        }
+
+        // Clear filters
+        function clearFilters() {
+            filterUser.value = '';
+            filterTeam.value = '';
+            filterStatus.value = '';
+            filterFromDate.value = '';
+            filterToDate.value = '';
+            applyFilters();
+        }
+
+        // Update results count
+        function updateResultsCount(count) {
+            document.getElementById('resultNumber').textContent = count;
+        }
+
+        // Export to Excel (CSV format)
+        async function exportToExcel() {
+            try {
+                showMessage('Preparing export...', 'success');
+                
+                // Get current filtered tasks
+                let tasksToExport = [...allTasks];
+                
+                // Apply same filters
+                if (filterUser.value) {
+                    tasksToExport = tasksToExport.filter(task => task.user === filterUser.value);
+                }
+                if (filterTeam.value) {
+                    tasksToExport = tasksToExport.filter(task => task.team === filterTeam.value);
+                }
+                if (filterStatus.value) {
+                    tasksToExport = tasksToExport.filter(task => task.status === filterStatus.value);
+                }
+                if (filterFromDate.value) {
+                    tasksToExport = tasksToExport.filter(task => task.start_date >= filterFromDate.value);
+                }
+                if (filterToDate.value) {
+                    tasksToExport = tasksToExport.filter(task => task.end_date <= filterToDate.value);
+                }
+
+                // Create CSV content
+                const headers = ['ID', 'Task', 'Client', 'Team', 'User', 'Hours', 'Minutes', 'Total Time', 'Start Date', 'End Date', 'Status', 'Created At', 'Updated At'];
+                const csvRows = [headers.join(',')];
+                
+                tasksToExport.forEach(task => {
+                    const totalMinutes = task.hours * 60 + task.minutes;
+                    const totalTime = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+                    
+                    const values = [
+                        task.id,
+                        `"${task.task.replace(/"/g, '""')}"`,
+                        `"${task.client.replace(/"/g, '""')}"`,
+                        task.team,
+                        task.user,
+                        task.hours,
+                        task.minutes,
+                        totalTime,
+                        task.start_date,
+                        task.end_date,
+                        task.status,
+                        new Date(task.created_at).toLocaleString(),
+                        new Date(task.updated_at).toLocaleString()
+                    ];
+                    csvRows.push(values.join(','));
+                });
+                
+                // Create blob and download
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                const filename = `task-logs-${new Date().toISOString().split('T')[0]}.csv`;
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showMessage(`Exported ${tasksToExport.length} tasks successfully!`, 'success');
+            } catch (error) {
+                console.error('Error exporting:', error);
+                showMessage('Error exporting data', 'error');
+            }
+        }
+
+        // Make export function global
+        window.exportToExcel = exportToExcel;
+        window.clearFilters = clearFilters;
 
         // Add or update task
         form.addEventListener('submit', async (e) => {
@@ -609,7 +868,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                <p>No task entries yet. Add your first entry above.</p>
+                                <p>No task entries found. Try adjusting your filters or add a new entry.</p>
                             </div>
                         </td>
                     </tr>
