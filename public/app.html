@@ -414,6 +414,12 @@
             border: 1px solid rgba(102, 16, 242, 0.3);
         }
 
+        .badge.adhoc {
+            background: rgba(255, 140, 0, 0.1);
+            color: #ff8c00;
+            border: 1px solid rgba(255, 140, 0, 0.3);
+        }
+
         .badge.yet-to-start {
             background: rgba(108, 117, 125, 0.1);
             color: #6c757d;
@@ -594,6 +600,8 @@
                             <option value="IPDRG">IPDRG</option>
                             <option value="NLP">NLP</option>
                             <option value="Phycon">Phycon</option>
+                            <option value="ROH">ROH</option>
+                            <option value="Demo">Demo</option>
                             <option value="Others">Others</option>
                             <option value="Scrum">Scrum</option>
                         </select>
@@ -605,17 +613,13 @@
                             <option value="">Select...</option>
                             <option value="Build">Build</option>
                             <option value="Imp">Imp</option>
+                            <option value="Adhoc">Adhoc</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>User</label>
-                        <select id="user" required>
-                            <option value="">Select...</option>
-                            <option value="Venkatakamesh">Venkatakamesh</option>
-                            <option value="Chandrashekar">Chandrashekar</option>
-                            <option value="Meenu">Meenu</option>
-                        </select>
+                        <input type="text" id="user" readonly style="background: #e9ecef; cursor: not-allowed;" required>
                     </div>
 
                     <div class="form-group">
@@ -699,6 +703,8 @@
                                     <option value="IPDRG">IPDRG</option>
                                     <option value="NLP">NLP</option>
                                     <option value="Phycon">Phycon</option>
+                                    <option value="ROH">ROH</option>
+                                    <option value="Demo">Demo</option>
                                     <option value="Others">Others</option>
                                     <option value="Scrum">Scrum</option>
                                 </select>
@@ -711,6 +717,7 @@
                                     <option value="">All</option>
                                     <option value="Build">Build</option>
                                     <option value="Imp">Imp</option>
+                                    <option value="Adhoc">Adhoc</option>
                                 </select>
                             </div>
                         </th>
@@ -781,6 +788,9 @@
 
         // Display current user
         document.getElementById('currentUser').textContent = username;
+        
+        // Set user field to logged-in user (readonly)
+        document.getElementById('user').value = username;
 
         // Logout function
         async function logout() {
@@ -1104,6 +1114,7 @@
                 editingId = null;
                 form.reset();
                 setDefaultDates(); // Reset dates to today after form reset
+                document.getElementById('user').value = username; // Reset user to logged-in user
                 submitBtn.textContent = 'Add Task Entry';
                 
                 // Reload tasks but keep filters active
