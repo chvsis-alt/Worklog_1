@@ -7,18 +7,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #141824;
-            --bg-tertiary: #1a1f2e;
-            --accent-primary: #00d9ff;
-            --accent-secondary: #7c3aed;
-            --accent-gradient: linear-gradient(135deg, #00d9ff 0%, #7c3aed 100%);
-            --text-primary: #e8eaed;
-            --text-secondary: #9ca3af;
-            --border-color: #2d3548;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f3f5;
+            --accent-primary: #0066cc;
+            --accent-secondary: #6610f2;
+            --accent-gradient: linear-gradient(135deg, #0066cc 0%, #6610f2 100%);
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --success: #28a745;
+            --warning: #ffc107;
+            --error: #dc3545;
+            --shadow: rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -94,6 +95,7 @@
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .form-section::before {
@@ -181,7 +183,7 @@
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 217, 255, 0.3);
+            box-shadow: 0 4px 12px var(--shadow);
         }
 
         button:active {
@@ -199,6 +201,7 @@
             border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .filter-section {
@@ -244,7 +247,7 @@
         }
 
         .btn-export:hover {
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
 
         .results-count {
@@ -361,33 +364,33 @@
         }
 
         .badge.build {
-            background: rgba(0, 217, 255, 0.15);
-            color: var(--accent-primary);
-            border: 1px solid rgba(0, 217, 255, 0.3);
+            background: rgba(0, 102, 204, 0.1);
+            color: #0066cc;
+            border: 1px solid rgba(0, 102, 204, 0.3);
         }
 
         .badge.imp {
-            background: rgba(124, 58, 237, 0.15);
-            color: var(--accent-secondary);
-            border: 1px solid rgba(124, 58, 237, 0.3);
+            background: rgba(102, 16, 242, 0.1);
+            color: #6610f2;
+            border: 1px solid rgba(102, 16, 242, 0.3);
         }
 
         .badge.yet-to-start {
-            background: rgba(107, 114, 128, 0.15);
-            color: #9ca3af;
-            border: 1px solid rgba(107, 114, 128, 0.3);
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.3);
         }
 
         .badge.inprogress {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--warning);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            background: rgba(255, 193, 7, 0.1);
+            color: #e67e00;
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .badge.completed {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
         }
 
         .actions {
@@ -536,7 +539,20 @@
 
                     <div class="form-group">
                         <label>Client</label>
-                        <input type="text" id="client" placeholder="Enter client..." required>
+                        <select id="client" required>
+                            <option value="">Select client...</option>
+                            <option value="Medstar">Medstar</option>
+                            <option value="St.clair">St.clair</option>
+                            <option value="PDM">PDM</option>
+                            <option value="OVP">OVP</option>
+                            <option value="Orthomed">Orthomed</option>
+                            <option value="FC">FC</option>
+                            <option value="IPDRG">IPDRG</option>
+                            <option value="NLP">NLP</option>
+                            <option value="Phycon">Phycon</option>
+                            <option value="Others">Others</option>
+                            <option value="Scrum">Scrum</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -628,7 +644,20 @@
                         <th>
                             <div>Client</div>
                             <div class="column-filter">
-                                <input type="text" id="filterClient" placeholder="Search client..." oninput="applyFilters()">
+                                <select id="filterClient" onchange="applyFilters()">
+                                    <option value="">All</option>
+                                    <option value="Medstar">Medstar</option>
+                                    <option value="St.clair">St.clair</option>
+                                    <option value="PDM">PDM</option>
+                                    <option value="OVP">OVP</option>
+                                    <option value="Orthomed">Orthomed</option>
+                                    <option value="FC">FC</option>
+                                    <option value="IPDRG">IPDRG</option>
+                                    <option value="NLP">NLP</option>
+                                    <option value="Phycon">Phycon</option>
+                                    <option value="Others">Others</option>
+                                    <option value="Scrum">Scrum</option>
+                                </select>
                             </div>
                         </th>
                         <th>
@@ -717,6 +746,16 @@
         const filterStartDate = document.getElementById('filterStartDate');
         const filterEndDate = document.getElementById('filterEndDate');
 
+        // Set default dates to today
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        }
+
+        // Call on page load
+        setDefaultDates();
+
         // Show message
         function showMessage(message, type = 'success') {
             messageContainer.innerHTML = `
@@ -745,11 +784,14 @@
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                allTasks = data.tasks;
+                allTasks = data.tasks || []; // Ensure it's an array
+                console.log('Loaded tasks:', allTasks.length); // Debug log
                 applyFilters(); // Apply filters to show current filtered view
             } catch (error) {
                 console.error('Error loading tasks:', error);
                 showMessage('Error loading tasks from database', 'error');
+                allTasks = []; // Set to empty array on error
+                applyFilters();
             }
         }
 
@@ -765,12 +807,9 @@
                 );
             }
 
-            // Filter by client name (search)
-            if (filterClient.value.trim()) {
-                const searchTerm = filterClient.value.toLowerCase();
-                filteredTasks = filteredTasks.filter(task => 
-                    task.client.toLowerCase().includes(searchTerm)
-                );
+            // Filter by client (dropdown - exact match)
+            if (filterClient.value) {
+                filteredTasks = filteredTasks.filter(task => task.client === filterClient.value);
             }
 
             // Filter by user
@@ -850,11 +889,8 @@
                         task.task.toLowerCase().includes(searchTerm)
                     );
                 }
-                if (filterClient.value.trim()) {
-                    const searchTerm = filterClient.value.toLowerCase();
-                    tasksToExport = tasksToExport.filter(task => 
-                        task.client.toLowerCase().includes(searchTerm)
-                    );
+                if (filterClient.value) {
+                    tasksToExport = tasksToExport.filter(task => task.client === filterClient.value);
                 }
                 if (filterUser.value) {
                     tasksToExport = tasksToExport.filter(task => task.user === filterUser.value);
@@ -969,6 +1005,7 @@
 
                 editingId = null;
                 form.reset();
+                setDefaultDates(); // Reset dates to today after form reset
                 submitBtn.textContent = 'Add Task Entry';
                 
                 // Reload tasks but keep filters active
@@ -1078,7 +1115,7 @@
             }
         };
 
-        // Initialize
+        // Initialize - Load tasks on page load
         loadTasks();
     </script>
 </body>
