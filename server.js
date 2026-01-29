@@ -16,6 +16,7 @@ const users = {
 };
 
 // Session store (in-memory for simplicity)
+// Sessions remain active until explicit logout
 const sessions = new Map();
 
 // Middleware
@@ -144,11 +145,14 @@ function requireAuth(req, res, next) {
 // Get all tasks (protected)
 app.get('/api/tasks', requireAuth, (req, res) => {
     const sql = 'SELECT * FROM tasks ORDER BY created_at DESC';
+    console.log('📊 Fetching all tasks from database...');
     db.all(sql, [], (err, rows) => {
         if (err) {
+            console.error('❌ Error fetching tasks:', err.message);
             res.status(500).json({ error: err.message });
             return;
         }
+        console.log(`✅ Retrieved ${rows.length} tasks from database`);
         res.json({ tasks: rows });
     });
 });
@@ -173,6 +177,8 @@ app.get('/api/tasks/:id', requireAuth, (req, res) => {
 app.post('/api/tasks', requireAuth, (req, res) => {
     const { task, client, team, user, hours, minutes, start_date, end_date, status } = req.body;
     
+    console.log('➕ Creating new task:', { task, client, team, user, status });
+    
     // Validation
     if (!task || !client || !team || !user || hours === undefined || minutes === undefined || !start_date || !end_date || !status) {
         res.status(400).json({ error: 'All fields are required' });
@@ -184,9 +190,11 @@ app.post('/api/tasks', requireAuth, (req, res) => {
     
     db.run(sql, [task, client, team, user, hours, minutes, start_date, end_date, status], function(err) {
         if (err) {
+            console.error('❌ Error creating task:', err.message);
             res.status(500).json({ error: err.message });
             return;
         }
+        console.log(`✅ Task created successfully with ID: ${this.lastID}`);
         res.json({
             message: 'Task created successfully',
             task: {
