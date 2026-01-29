@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
@@ -38,15 +39,42 @@ app.use((req, res, next) => {
 // Serve static files from 'public' directory
 app.use(express.static('public'));
 
-// Database setup
-let db = new sqlite3.Database('./tasklogger.db', (err) => {
-    if (err) {
-        console.error('Error opening database:', err);
-    } else {
-        console.log('✅ Connected to SQLite database');
-        initializeDatabase();
-    }
-});
+// Database setup with persistence verification
+let db;
+
+function initializeDB() {
+    // Use absolute path to ensure database file location is consistent
+    const dbPath = path.join(__dirname, 'tasklogger.db');
+    
+    console.log('📂 Database path:', dbPath);
+    
+    db = new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error('❌ Error opening database:', err);
+            process.exit(1);
+        } else {
+            console.log('✅ Connected to SQLite database at:', dbPath);
+            
+            // Check if database file exists
+            if (fs.existsSync(dbPath)) {
+                console.log('✅ Database file exists');
+                // Count existing records
+                db.get('SELECT COUNT(*) as count FROM tasks', [], (err, row) => {
+                    if (!err && row) {
+                        console.log(`📊 Existing records in database: ${row.count}`);
+                    }
+                });
+            } else {
+                console.log('📝 Creating new database file');
+            }
+            
+            initializeDatabase();
+        }
+    });
+}
+
+// Initialize database
+initializeDB();
 
 // Initialize database with schema
 function initializeDatabase() {
