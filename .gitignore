@@ -1,11 +1,6 @@
 # Dependencies
 node_modules/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
 # Logs
 logs
 *.log
@@ -22,3 +17,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# NOTE: Database files are NOT ignored
+# tasklogger.db is kept so data persists across deployments
