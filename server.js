@@ -8,9 +8,33 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Simple users database (username = password)
+const users = {
+    'Venkatakamesh': 'Venkatakamesh',
+    'Chandrashekar': 'Chandrashekar',
+    'Meenu': 'Meenu'
+};
+
+// Session store (in-memory for simplicity)
+const sessions = new Map();
+
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 app.use(bodyParser.json());
+
+// Session middleware (simple implementation)
+app.use((req, res, next) => {
+    const sessionId = req.headers['x-session-id'];
+    if (sessionId && sessions.has(sessionId)) {
+        req.session = sessions.get(sessionId);
+    }
+    next();
+});
+
+// Serve static files from 'public' directory
 app.use(express.static('public'));
 
 // Database setup
@@ -64,8 +88,61 @@ function initializeDatabase() {
 
 // API Endpoints
 
-// Get all tasks
-app.get('/api/tasks', (req, res) => {
+// Login endpoint
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    // Check credentials
+    if (users[username] && users[username] === password) {
+        // Create session
+        const sessionId = Date.now().toString() + Math.random().toString(36);
+        sessions.set(sessionId, { username, loginTime: new Date() });
+        
+        res.json({ 
+            success: true, 
+            sessionId,
+            username 
+        });
+    } else {
+        res.status(401).json({ error: 'Invalid username or password' });
+    }
+});
+
+// Logout endpoint
+app.post('/api/logout', (req, res) => {
+    const sessionId = req.headers['x-session-id'];
+    if (sessionId) {
+        sessions.delete(sessionId);
+    }
+    res.json({ success: true });
+});
+
+// Check session endpoint
+app.get('/api/session', (req, res) => {
+    const sessionId = req.headers['x-session-id'];
+    if (sessionId && sessions.has(sessionId)) {
+        const session = sessions.get(sessionId);
+        res.json({ authenticated: true, username: session.username });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+// Middleware to protect routes
+function requireAuth(req, res, next) {
+    const sessionId = req.headers['x-session-id'];
+    if (!sessionId || !sessions.has(sessionId)) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+    next();
+}
+
+// Get all tasks (protected)
+app.get('/api/tasks', requireAuth, (req, res) => {
     const sql = 'SELECT * FROM tasks ORDER BY created_at DESC';
     db.all(sql, [], (err, rows) => {
         if (err) {
@@ -76,8 +153,8 @@ app.get('/api/tasks', (req, res) => {
     });
 });
 
-// Get single task by ID
-app.get('/api/tasks/:id', (req, res) => {
+// Get single task by ID (protected)
+app.get('/api/tasks/:id', requireAuth, (req, res) => {
     const sql = 'SELECT * FROM tasks WHERE id = ?';
     db.get(sql, [req.params.id], (err, row) => {
         if (err) {
@@ -92,8 +169,8 @@ app.get('/api/tasks/:id', (req, res) => {
     });
 });
 
-// Create new task
-app.post('/api/tasks', (req, res) => {
+// Create new task (protected)
+app.post('/api/tasks', requireAuth, (req, res) => {
     const { task, client, team, user, hours, minutes, start_date, end_date, status } = req.body;
     
     // Validation
@@ -128,8 +205,8 @@ app.post('/api/tasks', (req, res) => {
     });
 });
 
-// Update task
-app.put('/api/tasks/:id', (req, res) => {
+// Update task (protected)
+app.put('/api/tasks/:id', requireAuth, (req, res) => {
     const { task, client, team, user, hours, minutes, start_date, end_date, status } = req.body;
     
     // Validation
@@ -159,8 +236,8 @@ app.put('/api/tasks/:id', (req, res) => {
     });
 });
 
-// Delete task
-app.delete('/api/tasks/:id', (req, res) => {
+// Delete task (protected)
+app.delete('/api/tasks/:id', requireAuth, (req, res) => {
     const sql = 'DELETE FROM tasks WHERE id = ?';
     db.run(sql, [req.params.id], function(err) {
         if (err) {
